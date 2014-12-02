@@ -37,6 +37,11 @@ Or both:
     py_timer(5, print_a_number, [100], {'num2': 100})
 
 # Cancelling timers
+Timers can be cancelled as with the built-in library:
+
+    timer1 = py_timer(5, print_a_number, [100])
+    timer1.cancel()
+
 When the main program finishes, all timers will be canceled. Keep this in mind! It is implemented using [daemon](https://docs.python.org/2/library/threading.html#threading.Thread.daemon) threads (see the ``_restart_timer()`` function in ``py_timer_manager`` class).
 
 # Limitations
