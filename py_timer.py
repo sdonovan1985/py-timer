@@ -20,7 +20,8 @@ class py_timer_manager:
         if self.INSTANCE is not None:
             raise ValueError("Instance already exists!")
 
-        self.list_of_timers = []
+        self.list_of_inactive_timers = []
+        self.list_of_active_timers = []
         self.thread_timer = None
 
     @classmethod
@@ -28,24 +29,33 @@ class py_timer_manager:
         if cls.INSTANCE is None:
             cls.INSTANCE = py_timer_manager()
         return cls.INSTANCE
-
+    
     def insert_into_list(self, timer):
+        # New inactive timer
+        self.list_of_inactive_timers.append(timer)
+
+    def start_timer(self, timer):
+        # Move a timer from the inactive list
         first = False
+        
+        self.list_of_inactive_timers.remove(timer)
+        timer.calculate_expiration(self)
+        
         # Insert based on time to expire. O(n) time.
-        if len(self.list_of_timers) == 0:
-            self.list_of_timers.insert(0, timer)
+        if len(self.list_of_active_timers) == 0:
+            self.list_of_active_timers.insert(0, timer)
             first = True
         else:
             inserted = False
-            for x in range(len(self.list_of_timers)):
-                if self.list_of_timers[x].expiration > timer.expiration:
-                    self.list_of_timers.insert(x, timer)
+            for x in range(len(self.list_of_active_timers)):
+                if self.list_of_active_timers[x].expiration > timer.expiration:
+                    self.list_of_active_timers.insert(x, timer)
                     inserted = True
                     if x == 0:
                         first = True
                     break
             if inserted == False:
-                self.list_of_timers.append(timer)
+                self.list_of_active_timers.append(timer)
         
 
         # If the timer is the next to expire, stop the running timer
@@ -56,37 +66,42 @@ class py_timer_manager:
             # Call _restart_timer()
             self._restart_timer()
 
+    def is_timer_alive(self, timer):
+        return (timer is in self.list_of_active_timers)
+
     def remove_from_list(self, timer):
-        # If it's the first one in the list_of_timers, need to do extra
-        if ((len(self.list_of_timers) != 0) and 
-            (self.list_of_timers[0] == timer)):
+        if timer is in self.list_of_inactive_timers:
+            self.list_of_inactive_timers.remove(timer)
+        # If it's the first one in the list_of_active_timers, need to do extra
+        elif ((len(self.list_of_active_timers) != 0) and 
+            (self.list_of_active_timers[0] == timer)):
             
             self.thread_timer.cancel()
-            self.list_of_timers.remove(timer)
+            self.list_of_active_timers.remove(timer)
             self._restart_timer()
         else:
-            self.list_of_timers.remove(timer)
+            self.list_of_active_timers.remove(timer)
 
 
     def _restart_timer(self):
         ''' 
         This is what happens when things expire, the timer needs to be stopped
         due to removal of entries, or insertion of new entries at the beginning
-        of the list_of_timers, etc. Pretty much the go-to function.
+        of the list_of_active_timers, etc. Pretty much the go-to function.
         '''
 
         if self.thread_timer is not None:
             self.thread_timer.cancel()
         # Call back anything that's expired
         now = datetime.now()
-        for entry in self.list_of_timers:
+        for entry in self.list_of_active_timers:
             if entry.expiration <= now:
-                self.list_of_timers.remove(entry)
+                self.list_of_active_timers.remove(entry)
                 entry.call_function()
         
         # Start the first timer that's not expired
-        if len(self.list_of_timers) != 0:
-            delta = self.list_of_timers[0].expiration - now
+        if len(self.list_of_active_timers) != 0:
+            delta = self.list_of_active_timers[0].expiration - now
             self.thread_timer = Timer(delta.total_seconds(), 
                                       self._restart_timer)
             # Set the daemon flag: If the main program dies, this will die too
@@ -111,16 +126,23 @@ class py_timer:
         self.args = args
         self.kwargs = kwargs
 
-        # Calculate the expiration time
-        self.expiration = datetime.now() + timedelta(seconds=self.interval)
-        
+        self.expiration = None
+
         # Get the instance of the py_timer_manager, insert into list
         self.manager = py_timer_manager.get_instance()
         self.manager.insert_into_list(self)
 
-    
+    def calculate_expiration(self):
+        self.expiration = datetime.now() + timedelta(seconds=self.interval)
+
+    def start(self):
+        self.manager.start_timer(self)
+
     def cancel(self):
         self.manager.remove_from_list(self)
+    
+    def is_alive(self):
+        self.manager.is_timer_alive(self)
     
     def call_function(self):
         ''' Calls the expiration function. Lots of splatting. '''
