@@ -72,16 +72,15 @@ class py_timer_manager:
     def remove_from_list(self, timer):
         if timer in self.list_of_inactive_timers:
             self.list_of_inactive_timers.remove(timer)
-        # If it's the first one in the list_of_active_timers, need to do extra
-        elif ((len(self.list_of_active_timers) != 0) and 
-            (self.list_of_active_timers[0] == timer)):
-            
-            self.thread_timer.cancel()
-            self.list_of_active_timers.remove(timer)
-            self._restart_timer()
-        else:
-            self.list_of_active_timers.remove(timer)
-
+        elif timer in self.list_of_active_timers:
+            # If it's the first in the list_of_active_timers, need to do extra
+            if self.list_of_active_timers[0] == timer:
+                self.thread_timer.cancel()
+                self.list_of_active_timers.remove(timer)
+                self._restart_timer()
+            else:
+                self.list_of_active_timers.remove(timer)
+        # else: trying to cancel an already cancelled timer shouldn't blow up.
 
     def _restart_timer(self):
         ''' 
