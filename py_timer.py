@@ -67,10 +67,10 @@ class py_timer_manager:
             self._restart_timer()
 
     def is_timer_alive(self, timer):
-        return (timer is in self.list_of_active_timers)
+        return (timer in self.list_of_active_timers)
 
     def remove_from_list(self, timer):
-        if timer is in self.list_of_inactive_timers:
+        if timer in self.list_of_inactive_timers:
             self.list_of_inactive_timers.remove(timer)
         # If it's the first one in the list_of_active_timers, need to do extra
         elif ((len(self.list_of_active_timers) != 0) and 
