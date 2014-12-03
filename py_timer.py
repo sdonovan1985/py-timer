@@ -39,7 +39,7 @@ class py_timer_manager:
         first = False
         
         self.list_of_inactive_timers.remove(timer)
-        timer.calculate_expiration(self)
+        timer.calculate_expiration(timer)
         
         # Insert based on time to expire. O(n) time.
         if len(self.list_of_active_timers) == 0:
