@@ -22,9 +22,13 @@ def basic_test():
     print "basic_test begin"
     print "BEGIN: Number of active threads: " + str(threading.active_count())
 
-    Timer(1, basic_test_print_1)
-    Timer(2, basic_test_print_2)
-    Timer(3, basic_test_print_3)
+    t1 = Timer(1, basic_test_print_1)
+    t2 = Timer(2, basic_test_print_2)
+    t3 = Timer(3, basic_test_print_3)
+
+    t1.start()
+    t2.start()
+    t3.start()
 
     time.sleep(5)
     print "END: Number of active threads: " + str(threading.active_count())
@@ -42,9 +46,13 @@ def basic_test_with_args():
     print "basic_test_with_args begin"
     print "BEGIN: Number of active threads: " + str(threading.active_count())
 
-    Timer(1, basic_test_with_args_print, [1])
-    Timer(2, basic_test_with_args_print, [2])
-    Timer(3, basic_test_with_args_print, [3])
+    t1 = Timer(1, basic_test_with_args_print, [1])
+    t2 = Timer(2, basic_test_with_args_print, [2])
+    t3 = Timer(3, basic_test_with_args_print, [3])
+
+    t1.start()
+    t2.start()
+    t3.start()
 
     time.sleep(5)
     print "END: Number of active threads: " + str(threading.active_count())
@@ -61,9 +69,13 @@ def basic_test_with_kwargs():
     print "basic_test_with_kwargs begin"
     print "BEGIN: Number of active threads: " + str(threading.active_count())
 
-    Timer(1, basic_test_with_kwargs_print, kwargs={'num':1})
-    Timer(2, basic_test_with_kwargs_print, kwargs={'num':2})
-    Timer(3, basic_test_with_kwargs_print, kwargs={'num':3})
+    t1 = Timer(1, basic_test_with_kwargs_print, kwargs={'num':1})
+    t2 = Timer(2, basic_test_with_kwargs_print, kwargs={'num':2})
+    t3 = Timer(3, basic_test_with_kwargs_print, kwargs={'num':3})
+
+    t1.start()
+    t2.start()
+    t3.start()
 
     time.sleep(5)
     print "END: Number of active threads: " + str(threading.active_count())
@@ -80,11 +92,17 @@ def basic_test_with_args_and_kwargs():
     print "basic_test_with_args_and_kwargs begin"
     print "BEGIN: Number of active threads: " + str(threading.active_count())
 
-    Timer(1, basic_test_with_args_and_kwargs_print, [1])
-    Timer(2, basic_test_with_args_and_kwargs_print, kwargs={'num':2})
-    Timer(3, basic_test_with_args_and_kwargs_print, kwargs={'num':3, 'num2':3})
-    Timer(4, basic_test_with_args_and_kwargs_print, [4,4])
-    Timer(5, basic_test_with_args_and_kwargs_print, [5], {'num2':5})
+    t1 = Timer(1, basic_test_with_args_and_kwargs_print, [1])
+    t2 = Timer(2, basic_test_with_args_and_kwargs_print, kwargs={'num':2})
+    t3 = Timer(3, basic_test_with_args_and_kwargs_print, kwargs={'num':3, 'num2':3})
+    t4 = Timer(4, basic_test_with_args_and_kwargs_print, [4,4])
+    t5 = Timer(5, basic_test_with_args_and_kwargs_print, [5], {'num2':5})
+
+    t1.start()
+    t2.start()
+    t3.start()
+    t4.start()
+    t5.start()
 
     time.sleep(7)
     print "END: Number of active threads: " + str(threading.active_count())
@@ -104,10 +122,14 @@ def insertion_to_middle():
 
     print "insertion_to_middle begin"
     print "BEGIN: Number of active threads: " + str(threading.active_count())
+    
+    t1 = Timer(1, test_print, [1])
+    t2 = Timer(3, test_print, [3])
+    t3 = Timer(2, test_print, [2])
 
-    Timer(1, test_print, [1])
-    Timer(3, test_print, [3])
-    Timer(2, test_print, [2])
+    t1.start()
+    t2.start()
+    t3.start()
 
     time.sleep(5)
     print "END: Number of active threads: " + str(threading.active_count())
@@ -125,9 +147,13 @@ def insertion_to_head():
     print "insertion_to_head begin"
     print "BEGIN: Number of active threads: " + str(threading.active_count())
 
-    Timer(2, test_print, [2])
-    Timer(1, test_print, [1])
-    Timer(3, test_print, [3])
+    t2 = Timer(2, test_print, [2])
+    t1 = Timer(1, test_print, [1])
+    t3 = Timer(3, test_print, [3])
+
+    t2.start()
+    t1.start()
+    t3.start()
 
     time.sleep(5)
     print "END: Number of active threads: " + str(threading.active_count())
@@ -144,11 +170,15 @@ def removal_from_tail():
     print "removal_from_tail begin"
     print "BEGIN: Number of active threads: " + str(threading.active_count())
 
-    timer1 = Timer(1, test_print, [1])
-    timer2 = Timer(2, test_print, [2])
-    timer3 = Timer(3, test_print, [3])
+    t1 = Timer(1, test_print, [1])
+    t2 = Timer(2, test_print, [2])
+    t3 = Timer(3, test_print, [3])
 
-    timer3.cancel()
+    t1.start()
+    t2.start()
+    t3.start()
+
+    t3.cancel()
 
     time.sleep(5)
     print "END: Number of active threads: " + str(threading.active_count())
@@ -166,11 +196,15 @@ def removal_from_middle():
     print "removal_from_tail begin"
     print "BEGIN: Number of active threads: " + str(threading.active_count())
 
-    timer1 = Timer(1, test_print, [1])
-    timer2 = Timer(2, test_print, [2])
-    timer3 = Timer(3, test_print, [3])
+    t1 = Timer(1, test_print, [1])
+    t2 = Timer(2, test_print, [2])
+    t3 = Timer(3, test_print, [3])
 
-    timer2.cancel()
+    t1.start()
+    t2.start()
+    t3.start()
+
+    t2.cancel()
 
     time.sleep(5)
     print "END: Number of active threads: " + str(threading.active_count())
@@ -187,11 +221,15 @@ def removal_from_head():
     print "removal_from_tail begin"
     print "BEGIN: Number of active threads: " + str(threading.active_count())
 
-    timer1 = Timer(1, test_print, [1])
-    timer2 = Timer(2, test_print, [2])
-    timer3 = Timer(3, test_print, [3])
+    t1 = Timer(1, test_print, [1])
+    t2 = Timer(2, test_print, [2])
+    t3 = Timer(3, test_print, [3])
 
-    timer1.cancel()
+    t1.start()
+    t2.start()
+    t3.start()
+
+    t1.cancel()
 
     time.sleep(5)
     print "END: Number of active threads: " + str(threading.active_count())
@@ -199,6 +237,31 @@ def removal_from_head():
     print ""
     print ""
     print ""
+
+def removal_from_inactive():
+    def test_print(num):
+        print "Timer number " + str(num)
+        print "Threads: " + str(threading.active_count())
+
+    print "removal_from_tail begin"
+    print "BEGIN: Number of active threads: " + str(threading.active_count())
+
+    t1 = Timer(1, test_print, [1])
+    t2 = Timer(2, test_print, [2])
+    t3 = Timer(3, test_print, [3])
+
+    t2.cancel()
+
+    t1.start()
+    t3.start()
+
+    time.sleep(5)
+    print "END: Number of active threads: " + str(threading.active_count())
+    print "removal_from_tail end"
+    print ""
+    print ""
+    print ""
+
 
 def timer_death_on_interrupt():
     # Create a long live timer, and have program end abruptly by having user
@@ -229,4 +292,5 @@ if __name__ == '__main__':
     removal_from_tail()
     removal_from_middle()
     removal_from_head()
+    removal_from_inactive()
     timer_death_on_interrupt()
