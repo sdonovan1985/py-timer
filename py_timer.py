@@ -95,7 +95,8 @@ class py_timer_manager:
         now = datetime.now()
         for entry in self.list_of_active_timers:
             if entry.expiration <= now:
-                self.list_of_active_timers.remove(entry)
+                if entry in self.list_of_active_timers:
+                    self.list_of_active_timers.remove(entry)
                 entry.call_function()
         
         # Start the first timer that's not expired
