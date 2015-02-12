@@ -11,7 +11,7 @@
 
 import logging
 from datetime import datetime, timedelta
-from threading import Timer, Lock
+from threading import Timer, Lock, Thread
 import pprint
 
 class py_timer_manager:
@@ -71,16 +71,17 @@ class py_timer_manager:
         return (timer in self.list_of_active_timers)
 
     def remove_from_list(self, timer):
-        if timer in self.list_of_inactive_timers:
-            self.list_of_inactive_timers.remove(timer)
-        elif timer in self.list_of_active_timers:
-            # If it's the first in the list_of_active_timers, need to do extra
-            if self.list_of_active_timers[0] == timer:
-                self.thread_timer.cancel()
-                self.list_of_active_timers.remove(timer)
-                self._restart_timer()
-            else:
-                self.list_of_active_timers.remove(timer)
+        with self.timerlist_lock:
+            if timer in self.list_of_inactive_timers:
+                self.list_of_inactive_timers.remove(timer)
+            elif timer in self.list_of_active_timers:
+                # If it's the first in the list_of_active_timers, need to do extra
+                if self.list_of_active_timers[0] == timer:
+                    self.thread_timer.cancel()
+                    self.list_of_active_timers.remove(timer)
+                    self._restart_timer()
+                else:
+                    self.list_of_active_timers.remove(timer)
         # else: trying to cancel an already cancelled timer shouldn't blow up.
 
     def _restart_timer(self):
@@ -96,10 +97,13 @@ class py_timer_manager:
             # Call back anything that's expired
             now = datetime.now()
             entries_to_remove = []
+
             for entry in self.list_of_active_timers:
                 if entry.expiration <= now:
                     entries_to_remove.append(entry)
+
                     entry.call_function()
+
             for entry in entries_to_remove:
                     self.list_of_active_timers.remove(entry)
 
@@ -107,17 +111,20 @@ class py_timer_manager:
             # Start the first timer that's not expired
             if len(self.list_of_active_timers) != 0:
                 delta = self.list_of_active_timers[0].expiration - now
+
                 self.thread_timer = Timer(delta.total_seconds(), 
-                                          self._restart_timer)
+                                          self._finish_timer)
                 # Set the daemon flag: If the main program dies, this will die too
                 # prevents the case where a 3 day long timer for a long lived DNS
                 # entry keeps the program running for ages.
                 self.thread_timer.daemon = True
-                try:
-                    self.thread_timer.start()
-                except RuntimeError:
-                    # Don't worry about this one.
-                    return
+                self.thread_timer.start()
+
+    def _finish_timer(self):
+        ''' 
+        The timer calls back to this so that we can log things easily if need be
+        '''
+        self._restart_timer()
 
 
 class py_timer:
@@ -150,8 +157,25 @@ class py_timer:
     
     def is_alive(self):
         self.manager.is_timer_alive(self)
-    
+
     def call_function(self):
+        cb_thread = None
+
+        if ((len(self.args) == 0) and len(self.kwargs) == 0):
+            cb_thread = Thread(target=self.function)
+        elif ((len(self.args) != 0) and len(self.kwargs) == 0):
+            cb_thread = Thread(target=self.function, 
+                               args=self.args)
+        elif ((len(self.args) == 0) and len(self.kwargs) != 0):
+            cb_thread = Thread(target=self.function, 
+                               kwargs=self.kwargs)
+        else:
+            cb_thread = Thread(target=self.function, 
+                               args=self.args,
+                               kwargs=self.kwargs)
+        cb_thread.start()
+
+    def call_function_orig(self):
         ''' Calls the expiration function. Lots of splatting. '''
         if (len(self.args) == 0):
                 pass
